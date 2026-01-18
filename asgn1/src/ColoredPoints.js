@@ -40,7 +40,7 @@ let g_selectedColor = [1.0, 1.0, 1.0, 1.0]
 let g_selectedSize = 40.0;
 let g_selectedShape = SQUARE;
 let g_circleSegments = 50;
-let g_mode = AWESOME;
+let g_mode = DRAW;
 
 const keys = {};
 const SCALING_FACTOR = 200;
