@@ -42,7 +42,8 @@ let g_selectedShape = SQUARE;
 let g_circleSegments = 50;
 let g_mode = AWESOME;
 
-const keys = {}
+const keys = {};
+const SCALING_FACTOR = 200;
 
 // State Globals
 var g_shapesList = [];
@@ -190,8 +191,10 @@ function convertCoordinatesEventToGL(ev) {
 
 // Draw every shape that is supposed to be in the canvas
 function renderAllShapes(shapes) {
-  // check the time at start of function
-  var startTime = performance.now();
+  if (g_mode == DRAW) {
+    // check the time at start of function
+    var startTime = performance.now();
+  }
 
   // Clear <canvas>
   gl.clear(gl.COLOR_BUFFER_BIT);
@@ -202,9 +205,11 @@ function renderAllShapes(shapes) {
     shapes[i].render();
   }
 
-  // Check time at end of function and display
-  var duration = performance.now() - startTime;
-  sendTextToHTML("n_dots: " + len + " ms: " + Math.floor(duration) + " fps: " + Math.floor(10000 / duration) / 10, "performance")
+  if (g_mode == DRAW) {
+    // Check time at end of function and display
+    var duration = performance.now() - startTime;
+    sendTextToHTML("n_dots: " + len + " ms: " + Math.floor(duration) + " fps: " + Math.floor(10000 / duration) / 10, "performance")
+  }
 }
 
 
@@ -505,12 +510,357 @@ function pictureMode() {
 
 let lastTime;
 let accumulator;
+let totalTime;
 let heart;
+let health;
 let gameShapes;
-const STEP = 1 / 30;
+let attacks;
+const STEP = 1 / 45;
 const RED = [1, 0, 0, 1];
+const BLUE = [0, 0, 1, 1];
+
+let atkStep;
+let timings = [
+  [() => totalTime > 1,
+  () => {
+    heart.color = BLUE;
+    heart.velocity[1] = -6
+  }
+  ],
+  [() => totalTime > 1.25,
+  () => {
+    let b = new Box();
+    b.color = [0.8, 0, 0, 1];
+    b.vertices = [
+      LEFT_BOUND + .05, BOTTOM_BOUND + .05,
+      RIGHT_BOUND - .05, BOTTOM_BOUND + .05,
+      RIGHT_BOUND - .05, TOP_BOUND - .55,
+      LEFT_BOUND + .05, TOP_BOUND - .55
+    ];
+    gameShapes.push(b);
+  }
+  ],
+  [() => totalTime > 2,
+  () => {
+    gameShapes.pop();
+    for (let i = 0; i < 10; i++) {
+      let b = new Bone();
+      b.length = 75;
+      b.position[0] = - .45 + i / 10;
+      b.position[1] = - 1;
+
+      b.velocity[0] = 0;
+      b.velocity[1] = 2;
+      gameShapes.push(b);
+      attacks.push(b);
+    }
+  }
+  ],
+  [() => attacks[0].position[1] >= -0.4,
+  () => {
+    for (let i = 0; i < 10; i++) {
+      let b = attacks[i];
+      b.position[1] = -0.3;
+      b.velocity[1] = 0;
+    }
+  }
+  ],
+  [() => totalTime > 2.75,
+  () => {
+    heart.color = RED;
+  }
+  ],
+  [() => totalTime > 4,
+  () => {
+    for (let i = 0; i < 10; i++) {
+      let b = attacks[i];
+      b.velocity[1] = -6;
+    }
+  }
+  ],
+  [() => totalTime > 4,
+  () => {
+    let n_bones = 23;
+    let tunnelWidth = 0.4
+    for (let i = 0; i < n_bones; i++) {
+      let b = new Bone();
+      let t = new Bone();
+
+      let offset = Math.cos(i / 3) / 8;
+
+      b.length = 125 + SCALING_FACTOR * (offset - tunnelWidth / 2);
+      b.position[0] = -1 - i * 1 / 10;
+      b.position[1] = -0.5 + b.length / 2 / SCALING_FACTOR;
+
+      b.velocity[0] = 2;
+      b.velocity[1] = 0;
+      gameShapes.push(b);
+      attacks.push(b);
+
+      t.length = 200 - b.length - SCALING_FACTOR * tunnelWidth / 2;
+      t.position[0] = -1 - i * 1 / 10;
+      t.position[1] = 0.5 - t.length / 2 / SCALING_FACTOR;
+
+      t.velocity[0] = 2;
+      t.velocity[1] = 0;
+      gameShapes.push(t);
+      attacks.push(t);
+    }
+  }
+  ],
+  [() => totalTime > 6,
+  () => {
+    let b1 = new Box();
+    b1.color = [0.8, 0, 0, 1];
+    b1.vertices = [
+      LEFT_BOUND - 1.05, BOTTOM_BOUND + .05,
+      RIGHT_BOUND + 1.05, BOTTOM_BOUND + .05,
+      RIGHT_BOUND + 1.05, BOTTOM_BOUND + .25,
+      LEFT_BOUND - 1.05, BOTTOM_BOUND + .25
+    ];
+    gameShapes.push(b1);
+
+    let b2 = new Box();
+    b2.color = [0.8, 0, 0, 1];
+    b2.vertices = [
+      LEFT_BOUND - 1.05, TOP_BOUND - .05,
+      RIGHT_BOUND + 1.05, TOP_BOUND - .05,
+      RIGHT_BOUND + 1.05, TOP_BOUND - .25,
+      LEFT_BOUND - 1.05, TOP_BOUND - .25
+    ];
+    gameShapes.push(b2);
+
+    let b3 = new Box();
+    b3.color = [0.8, 0, 0, 1];
+    b3.vertices = [
+      RIGHT_BOUND - .25, BOTTOM_BOUND - 1.05,
+      RIGHT_BOUND - .05, BOTTOM_BOUND - 1.05,
+      RIGHT_BOUND - .05, TOP_BOUND + 1.35,
+      RIGHT_BOUND - .25, TOP_BOUND + 1.35
+    ];
+    gameShapes.push(b3);
+
+
+    let b4 = new Box();
+    b4.color = [0.8, 0, 0, 1];
+    b4.vertices = [
+      LEFT_BOUND + .25, BOTTOM_BOUND - 1.05,
+      LEFT_BOUND + .05, BOTTOM_BOUND - 1.05,
+      LEFT_BOUND + .05, TOP_BOUND + 1.35,
+      LEFT_BOUND + .25, TOP_BOUND + 1.35
+    ];
+    gameShapes.push(b4);
+
+  }
+  ],
+  [() => totalTime > 7,
+  () => {
+    gameShapes.pop();
+    gameShapes.pop();
+    gameShapes.pop();
+    gameShapes.pop();
+    let b = new BoxAttack();
+    b.position = [-0.35, 0, 0];
+    b.width = 75;
+    b.length = 400;
+    gameShapes.push(b);
+    attacks.push(b);
+    b = new BoxAttack();
+    b.position = [0.35, 0, 0];
+    b.width = 75;
+    b.length = 400;
+    gameShapes.push(b);
+    attacks.push(b);
+    b = new BoxAttack();
+    b.position = [0, 0.35, 0];
+    b.width = 400;
+    b.length = 75;
+    gameShapes.push(b);
+    attacks.push(b);
+    b = new BoxAttack();
+    b.position = [0, -0.35, 0];
+    b.width = 400;
+    b.length = 75;
+    gameShapes.push(b);
+    attacks.push(b);
+  }
+  ],
+  [() => totalTime > 7.5,
+  () => {
+    let b1 = new Box();
+    b1.color = [0.8, 0, 0, 1];
+    b1.vertices = [
+      LEFT_BOUND - 1.05 - .2, BOTTOM_BOUND - 1.05,
+      LEFT_BOUND + 2.05 - .2, BOTTOM_BOUND + 2.05,
+      LEFT_BOUND + 2.05 + .2, BOTTOM_BOUND + 2.05,
+      LEFT_BOUND - 1.05 + .2, BOTTOM_BOUND - 1.05,
+    ];
+    gameShapes.push(b1);
+
+    b1 = new Box();
+    b1.color = [0.8, 0, 0, 1];
+    b1.vertices = [
+      RIGHT_BOUND + 1.05 - .2, BOTTOM_BOUND - 1.05,
+      RIGHT_BOUND - 2.05 - .2, BOTTOM_BOUND + 2.05,
+      RIGHT_BOUND - 2.05 + .2, BOTTOM_BOUND + 2.05,
+      RIGHT_BOUND + 1.05 + .2, BOTTOM_BOUND - 1.05,
+    ];
+    gameShapes.push(b1);
+  }
+  ],
+  [() => totalTime > 8,
+  () => {
+    gameShapes.splice(gameShapes.length - 6, 4);
+    attacks.splice(attacks.length - 4, 4);
+  }
+  ],
+  [() => totalTime > 8.5,
+  () => {
+    gameShapes.splice(gameShapes.length - 2, 2);
+    let b1 = new Diag();
+    gameShapes.push(b1);
+    attacks.push(b1);
+  }
+  ],
+
+
+  [() => totalTime > 9,
+  () => {
+
+    let b1 = new Box();
+    b1.color = [0.8, 0, 0, 1];
+    b1.vertices = [
+      LEFT_BOUND - 1.05, BOTTOM_BOUND + .05,
+      RIGHT_BOUND + 1.05, BOTTOM_BOUND + .05,
+      RIGHT_BOUND + 1.05, BOTTOM_BOUND + .25,
+      LEFT_BOUND - 1.05, BOTTOM_BOUND + .25
+    ];
+    gameShapes.push(b1);
+
+    let b2 = new Box();
+    b2.color = [0.8, 0, 0, 1];
+    b2.vertices = [
+      LEFT_BOUND - 1.05, TOP_BOUND - .05,
+      RIGHT_BOUND + 1.05, TOP_BOUND - .05,
+      RIGHT_BOUND + 1.05, TOP_BOUND - .25,
+      LEFT_BOUND - 1.05, TOP_BOUND - .25
+    ];
+    gameShapes.push(b2);
+
+    let b3 = new Box();
+    b3.color = [0.8, 0, 0, 1];
+    b3.vertices = [
+      RIGHT_BOUND - .25, BOTTOM_BOUND - 1.05,
+      RIGHT_BOUND - .05, BOTTOM_BOUND - 1.05,
+      RIGHT_BOUND - .05, TOP_BOUND + 1.35,
+      RIGHT_BOUND - .25, TOP_BOUND + 1.35
+    ];
+    gameShapes.push(b3);
+
+
+    let b4 = new Box();
+    b4.color = [0.8, 0, 0, 1];
+    b4.vertices = [
+      LEFT_BOUND + .25, BOTTOM_BOUND - 1.05,
+      LEFT_BOUND + .05, BOTTOM_BOUND - 1.05,
+      LEFT_BOUND + .05, TOP_BOUND + 1.35,
+      LEFT_BOUND + .25, TOP_BOUND + 1.35
+    ];
+    gameShapes.push(b4);
+
+  }
+  ],
+  [() => totalTime > 9.5,
+  () => {
+    gameShapes.splice(gameShapes.length - 5, 1);
+    attacks.pop();
+  }
+  ],
+  [() => totalTime > 10,
+  () => {
+    gameShapes.pop();
+    gameShapes.pop();
+    gameShapes.pop();
+    gameShapes.pop();
+    let b = new BoxAttack();
+    b.position = [-0.35, 0, 0];
+    b.width = 75;
+    b.length = 400;
+    gameShapes.push(b);
+    attacks.push(b);
+    b = new BoxAttack();
+    b.position = [0.35, 0, 0];
+    b.width = 75;
+    b.length = 400;
+    gameShapes.push(b);
+    attacks.push(b);
+    b = new BoxAttack();
+    b.position = [0, 0.35, 0];
+    b.width = 400;
+    b.length = 75;
+    gameShapes.push(b);
+    attacks.push(b);
+    b = new BoxAttack();
+    b.position = [0, -0.35, 0];
+    b.width = 400;
+    b.length = 75;
+    gameShapes.push(b);
+    attacks.push(b);
+  }
+  ],
+
+
+
+
+  [() => totalTime > 10.5,
+  () => {
+    // gameShapes.pop();
+    // attacks.pop();
+
+    let b1 = new Box();
+    b1.color = [0.8, 0, 0, 1];
+    b1.vertices = [
+      LEFT_BOUND - 1.05, BOTTOM_BOUND + .15,
+      RIGHT_BOUND + 1.05, BOTTOM_BOUND + .15,
+      RIGHT_BOUND + 1.05, TOP_BOUND - .15,
+      LEFT_BOUND - 1.05, TOP_BOUND - .15,
+    ];
+    gameShapes.push(b1);
+  }
+  ],
+
+
+  [() => totalTime > 11,
+  () => {
+    gameShapes.splice(gameShapes.length - 5, 4);
+    attacks.splice(attacks.length - 4, 4);
+  }
+  ],
+
+  [() => totalTime > 11.5,
+  () => {
+    gameShapes.pop();
+    let b = new BoxAttack();
+    b.position = [0, 0, 0];
+    b.width = 400;
+    b.length = 160;
+    gameShapes.push(b);
+    attacks.push(b);
+  }
+  ],
+  [() => totalTime > 13,
+  () => {
+    gameShapes.pop();
+    attacks.pop();
+  }
+  ],
+
+  [() => false, () => { }]
+];
 
 function awesomeMode() {
+
+
   clearElems();
   document.getElementById("awesome").style.display = "block";
 
@@ -520,32 +870,77 @@ function awesomeMode() {
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
 
+  totalTime = 0;
+  health = 99;
   gameShapes = [];
+  atkStep = 0;
+  attacks = []
+
   heart = new Heart();
   heart.color = RED;
 
   gameShapes.push(heart);
+  gameShapes.push(new Box());
 
   lastTime = performance.now();
   accumulator = 0;
   requestAnimationFrame(gameLoop);
+
 }
 
 function gameLoop(now) {
+  if (g_mode == AWESOME) {
+    // check the time at start of function
+    var startTime = performance.now();
+  }
+
   let delta = (now - lastTime) / 1000;
   lastTime = now;
   accumulator += delta;
+  totalTime += delta;
+
+  if (timings[atkStep][0]()) {
+    timings[atkStep][1]();
+    atkStep++;
+  }
+
   while (accumulator >= STEP) {
     update(STEP);
     accumulator -= STEP;
+
+    if (health == 0) {
+      awesomeMode();
+    }
   }
+  // console.log(timings[atkStep][0])
 
   renderAllShapes(gameShapes);
   requestAnimationFrame(gameLoop);
+
+
+  if (g_mode == AWESOME) {
+    // Check time at end of function and display
+    var duration = performance.now() - startTime;
+    sendTextToHTML("health: " + health + " time: " + totalTime.toPrecision(3) + " ms: " + Math.floor(duration) + " fps: " + Math.floor(10000 / duration) / 10, "performance")
+  }
 }
 
 function update(dt) {
   for (let shape of gameShapes) {
-    shape.update(dt);
+    if (shape.update) {
+      shape.update(dt);
+    }
+  }
+
+  // damage check
+  let hit = false;
+  for (let attack of attacks) {
+    if (attack.containsPoint && attack.containsPoint(heart.position[0], heart.position[1])) {
+      hit = true;
+      break;
+    }
+  }
+  if (hit) {
+    health -= 1;
   }
 }
