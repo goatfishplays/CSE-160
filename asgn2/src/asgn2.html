@@ -1,0 +1,53 @@
+<!DOCTYPE html> <!-- HTML comment -->
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Blocky Animal</title>
+</head>
+
+<body onload="main()">
+    <p>Ronan Wong</p>
+    <p>roswong@ucsc.edu</p>
+    <p>Notes to Grader:</p>
+    <p>Rubric says at least 1 for the joint controls so only did one set of joints</p>
+
+    <br>
+    <br>
+    <canvas id="webgl" width="400" height="400"> <!-- Defines the canvas to be a 400x400 pixel area on webpage -->
+        Please use a browser that supports "canvas" <!-- Will be displayed if the canvas is unable to be rendered -->
+    </canvas>
+    <br>
+    <br>
+    <p id="performance"></p>
+    <p id="time"></p>
+    <br>
+    Camera Angle<input type="range" id="cameraAngleSlider" max="360" min="0" value=0>
+    <br>
+    Tail Joint 1<input type="range" id="tail1Slider" max="360" min="0" value=0>
+    <button type="button" id="t1OnButton">On</button>
+    <button type="button" id="t1OffButton">Off</button>
+    <br>
+    Tail Joint 2<input type="range" id="tail2Slider" max="360" min="0" value=0>
+    <button type="button" id="t2OnButton">On</button>
+    <button type="button" id="t2OffButton">Off</button>
+    <br>
+    Tail Joint 3<input type="range" id="tail3Slider" max="360" min="0" value=0>
+    <button type="button" id="t3OnButton">On</button>
+    <button type="button" id="t3OffButton">Off</button>
+    <br>
+    Animation
+    <button type="button" id="animationOnButton">On</button>
+    <button type="button" id="animationOffButton">Off</button>
+
+    <script src="../lib/cuon-utils.js"></script>
+    <script src="../lib/cuon-matrix-cse160.js"></script>
+    <script src="../lib/webgl-debug.js"></script>
+    <script src="../lib/webgl-utils.js"></script>
+
+    <script src="Cube.js"></script>
+    <script src="Pyramid.js"></script>
+    <script src="asgn2.js"></script>
+</body>
+
+</html>
