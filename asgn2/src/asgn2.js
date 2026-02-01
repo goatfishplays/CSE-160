@@ -804,21 +804,26 @@ let extraStage = [
   [8500, () => {
     console.log("piss");
     g_cap_rot = 60;
-    g_cap_s_z = -1.2 + 1.2 * comp;
-    g_cap_s_y = -5 + 5 * comp;
-    g_cap_z = g_pb_z + 1.9 - 1.9 * comp; // Yes I know that should separate tauros scaling and beam retract but lazy
-    g_cap_y = g_pb_y + 1.1 - 1 * comp;
+    g_cap_s_z = 1.2 * comp;
+    g_cap_s_y = -5 * comp;
+    g_cap_z = g_pb_z + 1.9 * comp;
+    g_cap_y = g_pb_y + 0.1 + 1.1 * comp;
 
     g_taur_scale = 1 * comp;
     g_taur_z = g_pb_z * (1 - comp);
     g_taur_y = g_pb_y * (1 - comp);
   }],
-  [10000, () => {
-    console.log("piss");
-    g_capturing = false;
-    g_pb_z = 10 * comp;
-  }],
   [11000, () => {
+    console.log("piss");
+    console.log("piss"); 0
+    g_cap_s_z = 0;
+    g_cap_s_y = 0;
+    g_cap_z = 0;
+    g_cap_y = 0;
+    g_capturing = false;
+    g_pb_z = -3.5 + 14 * comp;
+  }],
+  [12000, () => {
     console.log("piss");
     g_extraAnimating = false
     g_pb_open = 0;
