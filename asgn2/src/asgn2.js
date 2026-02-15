@@ -185,7 +185,7 @@ function main() {
   addActionsForHtmlUI();
 
   setupWebGL();
-  canvas.onmousemove = (ev) => { handleClicks(ev) };
+  canvas.onmousemove = (ev) => { handleMouseMove(ev) };
   canvas.onmousedown = (ev) => {
     if (ev.shiftKey && !g_extraAnimating) {
       g_extraAnimating = true;
@@ -217,7 +217,7 @@ function convertCoordinatesEventToGL(ev) {
 
 var last_x = 0;
 var last_y = 0;
-function handleClicks(ev) {
+function handleMouseMove(ev) {
   let [x, y] = convertCoordinatesEventToGL(ev);
   if (ev.buttons == 1) {
     g_globalAngleX += (y - last_y) * 100;

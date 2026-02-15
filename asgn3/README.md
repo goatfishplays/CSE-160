@@ -1,0 +1,1 @@
+mainly used labs and textbook for reference + gpt for debugging and extra info

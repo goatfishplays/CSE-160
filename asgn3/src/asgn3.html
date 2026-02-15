@@ -1,0 +1,36 @@
+<!DOCTYPE html> <!-- HTML comment -->
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Blocky World</title>
+</head>
+
+<body onload="main()">
+    <p>Ronan Wong</p>
+    <p>roswong@ucsc.edu</p>
+    <p>Notes to Grader:</p>
+    <p>Protect the city from meteors by placing barriers or breaking them</p>
+
+    <br>
+    <br>
+    <canvas id="webgl" width="600" height="600"> <!-- Defines the canvas to be a 400x400 pixel area on webpage -->
+        Please use a browser that supports "canvas" <!-- Will be displayed if the canvas is unable to be rendered -->
+    </canvas>
+    <br>
+    <br>
+    <p id="performance"></p>
+    <p id="time"></p>
+    <br>
+
+    <script src="../lib/cuon-utils.js"></script>
+    <script src="../lib/cuon-matrix-cse160.js"></script>
+    <script src="../lib/webgl-debug.js"></script>
+    <script src="../lib/webgl-utils.js"></script>
+
+    <script src="Cube.js"></script>
+    <script src="Camera.js"></script>
+    <script src="asgn3.js"></script>
+</body>
+
+</html>
