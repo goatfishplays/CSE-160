@@ -1,0 +1,315 @@
+import * as THREE from 'three';
+import { TwoSemiSpheres } from './TwoSemiSpheres.js';
+import { StarField } from './StarField.js';
+import { ExplosionCubes } from './ExplosionCubes.js';
+import { FlyControls } from 'three/addons/controls/FlyControls.js';
+import { ExplosionNoLight } from './ExplosionNoLight.js';
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
+import { ChargeRays } from './ChargeRays.js';
+
+
+// THREE things
+let renderer;
+let scene;
+let textureLoader;
+
+// Camera
+const fov = 75;
+const aspect = 2;  // the canvas default
+const near = 0.1;
+const far = 100;
+let camera;
+let controls;
+
+
+// plannet
+let hemi;
+let hemiLight;
+let explosion;
+let lightExplosion;
+
+let guyPose1;
+let guyPose2;
+let charge;
+
+let guyLight;
+let guyLight2;
+
+
+
+
+// stars
+const starField = new StarField({
+    count: 400,
+    fieldSize: { x: 30, y: 12, z: 20 },
+    minSize: 0.02,
+    maxSize: 0.12,
+    speedRange: [0.4, 1.6],
+    colors: [0xffffff, 0xffe0a0, 0xa0c8ff, 0xffa0d4],
+    opacity: 0.95,
+});
+
+
+
+
+
+
+function resizeRendererToDisplaySize(renderer) {
+    const canvas = renderer.domElement;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+
+    const needResize =
+        canvas.width !== width ||
+        canvas.height !== height;
+
+    if (needResize) {
+        renderer.setSize(width, height, false);
+    }
+
+    return needResize;
+}
+
+
+
+
+
+
+
+function main() {
+    const canvas = document.querySelector('#c');
+    renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
+    renderer.setClearColor(0x202030);
+
+    scene = new THREE.Scene();
+
+    scene.add(new THREE.AxesHelper(5));
+
+
+    // camera
+    camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+    // camera.position.z = 2;
+    // camera.lookAt(0, 0, 0);renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.position.set(-0.25, 1, 5);
+    camera.lookAt(0, 0, 0);
+    camera.updateProjectionMatrix();
+
+    // controls
+    controls = new FlyControls(camera, renderer.domElement);
+
+    controls.movementSpeed = 3;
+    controls.rollSpeed = Math.PI / 6;
+    controls.autoForward = false;
+    controls.dragToLook = true;
+
+
+
+    // plannet
+    // create the semispheres and add to scene
+    hemi = new TwoSemiSpheres({
+        radius: 2,
+        segments: 64,               // higher segments = smoother displacement + better normal shading
+        separation: 0,
+        bumpiness: 0.05,           // small bumps
+
+        cloud: { enabled: true, opacity: 0.6, rotationSpeed: 0.01 },
+    });
+    hemi.rotation.z = -70 * Math.PI / 180;
+    hemi.position.set(0, 0, -5);
+    scene.add(hemi);
+
+    explosion = new ExplosionCubes({
+        scene,
+        count: 120,
+        center: hemi.position,
+        rotation: hemi.rotation,
+        minSpeed: 2,
+        maxSpeed: 8,
+        minY: -0.3,
+        maxY: 0.3,
+        minScale: 0.02,
+        maxScale: 0.2,
+        lifetime: 3.5,
+        color: 0xba5e30,
+        texture: "resources/images/RockThing.png"
+    });
+    explosion.setRotation(new THREE.Euler(0, 0, 20 * Math.PI / 180));
+
+    lightExplosion = new ExplosionNoLight({
+        scene,
+        count: 140,
+        center: hemi.position, // remember to call explosion.setCenter(hemi.position) if you want it linked
+        rotation: explosion.rotation,
+        minSpeed: 2,
+        maxSpeed: 9,
+        minY: -0.2,
+        maxY: 0.2,
+        baseCubeSize: 0.03,
+        minScale: 0.5,
+        maxScale: 1.8,
+        lifetime: 3.0,
+        colorA: 0xffffff,
+        colorB: 0x00f2ff,
+        ring: { color: 0x00f2ff, lifetime: 1.5, maxScale: 20.0 }
+    });
+
+
+
+    // console.log(hemi.position);
+    // console.log(explosion.center);
+
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'b') {
+            explosion.trigger({ force: 1.2, jitterRadius: 0.03 });
+            lightExplosion.trigger({ force: 1.2, jitterRadius: 0.03 });
+        }
+        if (e.key === 'c') {
+
+            charge.trigger({ force: 1.6, jitter: 0.25 });
+        }
+    });
+
+    // * Plannet(point) Light
+    hemiLight = new THREE.PointLight(0xffffff, 10, 20);
+    hemiLight.position.set(...hemi.position);
+
+    scene.add(hemiLight);
+
+
+    // stars
+    scene.add(starField);
+
+
+    // * Scene Light
+    const color = 0xFFFFFF;
+    const intensity = 3;
+    const light = new THREE.DirectionalLight(color, intensity);
+    light.position.set(-6, 8, 4);
+    scene.add(light);
+    const amb = new THREE.AmbientLight(0xffffff, 0.2);
+    // amb.position.set(-6, 8, 4);
+    scene.add(amb);
+
+    // * Texture
+    const loadManager = new THREE.LoadingManager();
+    textureLoader = new THREE.TextureLoader(loadManager);
+
+    const loader = new THREE.TextureLoader();
+    const texture = loader.load(
+        'resources/images/sky.png',
+        () => {
+            texture.mapping = THREE.EquirectangularReflectionMapping;
+            texture.colorSpace = THREE.SRGBColorSpace;
+            scene.background = texture;
+        });
+
+
+
+    const mtlLoader = new MTLLoader(); const objLoader = new OBJLoader();
+    mtlLoader.load('resources/models/lowPoly1.mtl', (mtl) => {
+        mtl.preload();
+        for (const material of Object.values(mtl.materials)) {
+            material.side = THREE.DoubleSide;
+        }
+        objLoader.setMaterials(mtl);
+        objLoader.load('resources/models/lowPoly1.obj', (root) => {
+            guyPose1 = root;
+            guyPose1.scale.set(0.1, 0.1, 0.1);
+            guyPose1.rotation.y = Math.PI * 1.1;
+            guyPose1.position.z = 4;
+            guyPose1.position.x = .25;
+            guyPose1.position.y = -.1;
+
+            guyLight = new THREE.PointLight(0x00f2ff, 1, 2);
+            guyLight.position.set(0.1, 0.3, 4);
+            charge = new ChargeRays({
+                scene,
+                spawnShape: 'sphere',
+                // coneAngle: 25,
+                center: guyLight.position.clone(),
+                target: guyLight.position.clone().add(new THREE.Vector3(-0.1, - 0.3, -4)),
+                radius: 20,
+                length: 10,
+                baseWidth: 1.0,
+                tipWidth: 0.01,
+            });
+            scene.add(guyLight);
+            scene.add(root);
+        });
+        objLoader.load('resources/models/lowPoly2.obj', (root) => {
+            guyPose2 = root;
+            guyPose2.scale.set(0.1, 0.1, 0.1);
+            guyPose2.rotation.y = Math.PI * 1.1;
+            guyPose2.position.z = 4;
+            guyPose2.position.x = .25;
+            guyPose2.position.y = -.1;
+            guyPose2.visible = false;
+
+            guyLight2 = new THREE.PointLight(0x00f2ff, 25, 10);
+            guyLight2.position.set(.4, 0.75, 3);
+            guyLight2.visible = false;
+            scene.add(guyLight);
+            scene.add(root);
+        });
+    });
+
+
+
+
+
+
+    requestAnimationFrame(render);
+
+
+    console.log("hats");
+}
+
+
+
+let lastTime = 0;
+function render(time) {
+    time *= 0.001;  // convert time to seconds
+
+    const delta = time - lastTime;
+    lastTime = time;
+
+    controls.update(delta);
+
+
+    // update star field
+    starField.update(delta, camera);
+
+
+    // update explosion
+    explosion.update(delta);
+    lightExplosion.update(delta);
+
+    if (resizeRendererToDisplaySize(renderer)) {
+        const canvas = renderer.domElement;
+        camera.aspect = canvas.clientWidth / canvas.clientHeight;
+        camera.updateProjectionMatrix();
+    }
+
+
+
+
+    // guy
+    if (charge) {
+        charge.update(delta);
+    }
+
+    // example: pulsate separation between 0.0 and 1.0
+    const pulsate = -0.5 + Math.sin(time * 1.5) * 0.5; // range [0,1]
+    hemi.setSeparation(pulsate * 1.2); // scale to desired max
+    // hemi.rotation.y = pulsate;
+
+
+    renderer.render(scene, camera);
+
+    requestAnimationFrame(render);
+}
+
+
+main();

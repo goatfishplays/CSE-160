@@ -1,0 +1,77 @@
+<!DOCTYPE html> <!-- HTML comment -->
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Blocky World</title>
+</head>
+
+<body onload="main()">
+    <p>The normler</p>
+    <p id="performance"></p>
+    <p id="time"></p>
+
+    <br>
+    <canvas id="webgl" width="600" height="600"> <!-- Defines the canvas to be a 400x400 pixel area on webpage -->
+        Please use a browser that supports "canvas" <!-- Will be displayed if the canvas is unable to be rendered -->
+    </canvas>
+    <br>
+    Point:
+    <br>
+    X Pos
+    <button type="button" id="lightXOnButton">On</button>
+    <button type="button" id="lightXOffButton">Off</button>
+    <input type="range" id="lightXSlider" max="360" min="0" value=0>
+    Y Pos
+    <button type="button" id="lightYOnButton">On</button>
+    <button type="button" id="lightYOffButton">Off</button>
+    <input type="range" id="lightYSlider" max="360" min="0" value=0>
+    Z Pos
+    <button type="button" id="lightZOnButton">On</button>
+    <button type="button" id="lightZOffButton">Off</button>
+    <input type="range" id="lightZSlider" max="360" min="0" value=0>
+    <br>
+    R<input type="range" id="lightRSlider" max="360" min="0" value=360>
+    G<input type="range" id="lightGSlider" max="360" min="0" value=360>
+    B<input type="range" id="lightBSlider" max="360" min="0" value=360>
+    <br>
+    Active
+    <button type="button" id="LightingOnButton">On</button>
+    <button type="button" id="LightingOffButton">Off</button>
+    <br>
+    <br>
+    Plane:
+    <br>
+    X Pos
+    <input type="range" id="posXSlider" max="360" min="0" value=180>
+    Y Pos
+    <input type="range" id="posYSlider" max="360" min="0" value=2>
+    Z Pos
+    <input type="range" id="posZSlider" max="360" min="0" value=180>
+    <br>
+    X Rot
+    <input type="range" id="rotXSlider" max="360" min="0" value=0>
+    Y Rot
+    <input type="range" id="rotYSlider" max="360" min="0" value=0>
+    Z Rot
+    <input type="range" id="rotZSlider" max="360" min="0" value=0>
+    <br>
+    <br>
+
+
+    Normal Visualization
+    <button type="button" id="NormVisOnButton">On</button>
+    <button type="button" id="NormVisOffButton">Off</button>
+    <br>
+    <script src="../lib/cuon-utils.js"></script>
+    <script src="../lib/cuon-matrix-cse160.js"></script>
+    <script src="../lib/webgl-debug.js"></script>
+    <script src="../lib/webgl-utils.js"></script>
+
+    <script src="Cube.js"></script>
+    <script src="Plane.js"></script>
+    <script src="Camera.js"></script>
+    <script src="NormalMapThing.js"></script>
+</body>
+
+</html>
